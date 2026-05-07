@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TPT Funnel Report — EE Lab, KLE-CTIE</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0d1b3e;--navy-mid:#1a2f5e;
+  --gold:#c9a84c;--gold-l:#e8c97a;--gold-pale:#f5e9c8;
+  --cream:#faf8f3;--soft:#f0ece0;--white:#ffffff;
+  --text:#0d1b3e;--muted:#6b7a99;--border:rgba(13,27,62,0.10);
+  --shadow:0 8px 32px rgba(13,27,62,0.10);
+  --green:#1b7a3e;--red:#c0392b;--blue:#2471a3;--purple:#6c3483;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Outfit',sans-serif;background:var(--soft);color:var(--text);padding-bottom:48px;}
+
+/* ── STICKY FOOTER ── */
+.sticky-footer{
+  position:fixed;bottom:0;left:0;right:0;height:36px;
+  background:var(--navy);border-top:1px solid rgba(201,168,76,0.2);
+  display:flex;align-items:center;justify-content:center;z-index:200;
+}
+.sticky-footer span{font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.06em;}
+.sticky-footer span b{color:var(--gold);font-style:italic;font-weight:400;}
+
+/* ── HEADER ── */
+.report-header{
+  background:var(--navy);padding:2.5rem 2rem 2rem;
+  position:relative;overflow:hidden;
+}
+.report-header::before{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(rgba(201,168,76,0.05) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(201,168,76,0.05) 1px,transparent 1px);
+  background-size:50px 50px;
+}
+.report-header-inner{max-width:1100px;margin:0 auto;position:relative;z-index:1;}
+.report-eyebrow{font-size:11px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);margin-bottom:0.6rem;}
+.report-title{font-family:'Cormorant Garamond',serif;font-size:clamp(32px,5vw,52px);font-weight:600;color:var(--white);line-height:1.1;margin-bottom:0.4rem;}
+.report-title span{color:var(--gold);font-style:italic;}
+.report-sub{font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:1.5rem;}
+.gold-bar{height:3px;background:linear-gradient(to right,var(--gold),var(--gold-l),var(--gold));border-radius:2px;max-width:300px;}
+
+/* ── CONTAINER ── */
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+
+/* ── KPI CARDS ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:2rem;}
+.kpi-card{background:var(--white);border-radius:14px;padding:1.25rem 1rem;border:1px solid var(--border);box-shadow:var(--shadow);text-align:center;transition:transform 0.2s;}
+.kpi-card:hover{transform:translateY(-3px);}
+.kpi-label{font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.kpi-value{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:600;line-height:1;}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.kv-navy{color:var(--navy);}
+.kv-blue{color:var(--blue);}
+.kv-purple{color:var(--purple);}
+.kv-green{color:var(--green);}
+.kv-gold{color:var(--gold);}
+.kv-red{color:var(--red);}
+
+/* ── SECTION HEADER ── */
+.sec-label{display:flex;align-items:center;gap:10px;margin-bottom:1rem;}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);}
+.sec-line{flex:1;height:1px;background:rgba(201,168,76,0.25);max-width:50px;}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:clamp(22px,3vw,30px);font-weight:600;color:var(--navy);margin-bottom:0.5rem;}
+.sec-title em{color:var(--gold);font-style:italic;}
+.sec-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;}
+section{margin-bottom:3rem;}
+
+/* ── FUNNEL ── */
+.funnel-wrap{display:flex;flex-direction:column;gap:6px;}
+.funnel-row{display:grid;grid-template-columns:160px 1fr 60px 60px;gap:12px;align-items:center;padding:10px 16px;background:var(--white);border-radius:10px;border:1px solid var(--border);}
+.funnel-stage{font-size:12px;font-weight:600;color:var(--white);padding:4px 10px;border-radius:20px;text-align:center;}
+.funnel-bar-wrap{height:10px;background:rgba(13,27,62,0.07);border-radius:6px;overflow:hidden;}
+.funnel-bar{height:100%;border-radius:6px;background:linear-gradient(to right,var(--gold),var(--gold-l));transition:width 1.2s cubic-bezier(0.25,0.46,0.45,0.94);}
+.funnel-count{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--navy);text-align:center;}
+.funnel-pct{font-size:12px;color:var(--muted);text-align:center;}
+
+/* ── CHARTS ── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.chart-card{background:var(--white);border-radius:14px;padding:1.5rem;border:1px solid var(--border);box-shadow:var(--shadow);}
+.chart-title{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:1.25rem;letter-spacing:0.04em;text-transform:uppercase;}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.bar-label{font-size:12px;color:var(--text);min-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-track{flex:1;height:8px;background:rgba(13,27,62,0.07);border-radius:6px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:6px;transition:width 1.2s cubic-bezier(0.25,0.46,0.45,0.94);}
+.bar-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);min-width:24px;text-align:right;}
+/* donut */
+.donut-wrap{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;}
+.donut-svg{flex-shrink:0;}
+.donut-legend{display:flex;flex-direction:column;gap:8px;}
+.legend-row{display:flex;align-items:center;gap:8px;}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.legend-label{font-size:12px;color:var(--text);}
+.legend-val{font-size:11px;color:var(--muted);margin-left:auto;padding-left:12px;}
+
+/* ── PRODUCT CARDS ── */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+.product-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1.1rem;position:relative;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s;}
+.product-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);}
+.product-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.product-card.hot::before{background:linear-gradient(to right,var(--gold),var(--gold-l));}
+.product-card.solo::before{background:rgba(13,27,62,0.15);}
+.product-badge{display:inline-block;font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;margin-bottom:8px;}
+.badge-hw{background:#fce8e8;color:var(--red);}
+.badge-sw{background:#e8f0fe;color:var(--blue);}
+.badge-both{background:#e8f5e9;color:var(--green);}
+.product-name{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px;line-height:1.4;}
+.product-interest{display:flex;align-items:center;gap:6px;margin-top:8px;}
+.interest-dots{display:flex;gap:3px;}
+.interest-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);}
+.interest-dot.empty{background:rgba(13,27,62,0.1);}
+.interest-label{font-size:11px;color:var(--muted);}
+
+/* ── STUDENT TABLE ── */
+.table-wrap{background:var(--white);border-radius:14px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow);}
+.table-search{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;}
+.search-input{flex:1;border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;font-family:'Outfit',sans-serif;outline:none;color:var(--text);}
+.search-input:focus{border-color:var(--gold);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{background:var(--navy);color:rgba(255,255,255,0.7);font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:10px 14px;text-align:left;}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s;}
+tbody tr:hover{background:var(--cream);}
+tbody tr:last-child{border-bottom:none;}
+td{padding:10px 14px;vertical-align:middle;}
+.td-name{font-weight:500;color:var(--navy);}
+.td-usn{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.skill-pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;}
+.sp-sw{background:#e8f0fe;color:var(--blue);}
+.sp-hw{background:#fce8e8;color:var(--red);}
+.sp-both{background:#e8f5e9;color:var(--green);}
+.sp-gen{background:#f5f5f5;color:#666;}
+.yr-pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;background:var(--gold-pale);color:var(--navy);font-weight:500;}
+.own-yes{color:var(--green);font-size:11px;font-weight:600;}
+.own-no{color:var(--muted);font-size:11px;}
+
+/* ── INSIGHTS ── */
+.insights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;}
+.insight-card{background:var(--white);border-radius:12px;padding:1.4rem;border:1px solid var(--border);}
+.insight-card.dark{background:var(--navy);}
+.insight-icon{font-size:24px;margin-bottom:0.75rem;}
+.insight-title{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:0.4rem;}
+.insight-card.dark .insight-title{color:var(--white);}
+.insight-text{font-size:13px;color:var(--muted);line-height:1.65;}
+.insight-card.dark .insight-text{color:rgba(255,255,255,0.5);}
+
+/* ── REVEAL ── */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity 0.6s ease,transform 0.6s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.reveal-d1{transition-delay:0.1s;}.reveal-d2{transition-delay:0.2s;}.reveal-d3{transition-delay:0.3s;}
+
+@media(max-width:640px){
+  .charts-grid{grid-template-columns:1fr;}
+  .funnel-row{grid-template-columns:120px 1fr 40px 40px;}
+}
+</style>
+</head>
+<body>
+
+<!-- STICKY FOOTER -->
+<div class="sticky-footer">
+  <span>Made with ❤ ~rhc &nbsp;·&nbsp; EE Lab, KLE-CTIE &nbsp;<b>·</b>&nbsp; Tech Prowess Team v1.0 &nbsp;<b>·</b>&nbsp; May 2026</span>
+</div>
+
+<!-- HEADER -->
+<div class="report-header">
+  <div class="report-header-inner">
+    <div class="report-eyebrow">EE Lab · KLE-CTIE · KLE Technological University × Cshine</div>
+    <div class="report-title">Tech <span>Prowess</span> Team<br>Funnel Report</div>
+    <div class="report-sub">Student Registration & Interest Analysis · Cohort 2026 · 18 Responses</div>
+    <div class="gold-bar"></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid" style="margin-top:2rem;">
+    <div class="kpi-card reveal"><div class="kpi-label">Total Registrations</div><div class="kpi-value kv-navy">18</div><div class="kpi-sub">Session 1</div></div>
+    <div class="kpi-card reveal reveal-d1"><div class="kpi-label">Branches</div><div class="kpi-value kv-blue">6</div><div class="kpi-sub">Disciplines represented</div></div>
+    <div class="kpi-card reveal reveal-d2"><div class="kpi-label">Unique Ideas</div><div class="kpi-value kv-purple">10</div><div class="kpi-sub">Product concepts</div></div>
+    <div class="kpi-card reveal reveal-d3"><div class="kpi-label">Own PS</div><div class="kpi-value kv-green">9</div><div class="kpi-sub">Brought own problem</div></div>
+    <div class="kpi-card reveal"><div class="kpi-label">HW + SW</div><div class="kpi-value kv-gold">6</div><div class="kpi-sub">Full-stack builders</div></div>
+    <div class="kpi-card reveal reveal-d1"><div class="kpi-label">3rd Year</div><div class="kpi-value kv-red">4</div><div class="kpi-sub">Potential team leads</div></div>
+  </div>
+
+  <!-- FUNNEL -->
+  <section class="reveal">
+    <div class="sec-label"><span class="sec-num">01</span><div class="sec-line"></div></div>
+    <div class="sec-title">Registration <em>Funnel</em></div>
+    <div class="sec-sub">From session awareness to cross-discipline readiness — where the cohort stands.</div>
+    <div class="funnel-wrap" id="funnelWrap">
+      <div class="funnel-row">
+        <div class="funnel-stage" style="background:#0d1b3e;">Awareness</div>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" data-w="100"></div></div>
+        <div class="funnel-count">18</div><div class="funnel-pct">100%</div>
+      </div>
+      <div class="funnel-row">
+        <div class="funnel-stage" style="background:#2471a3;">Registered</div>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" data-w="100"></div></div>
+        <div class="funnel-count">18</div><div class="funnel-pct">100%</div>
+      </div>
+      <div class="funnel-row">
+        <div class="funnel-stage" style="background:#1b7a3e;">Own PS</div>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" data-w="50"></div></div>
+        <div class="funnel-count">9</div><div class="funnel-pct">50%</div>
+      </div>
+      <div class="funnel-row">
+        <div class="funnel-stage" style="background:#784212;">HW Capable</div>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" data-w="56"></div></div>
+        <div class="funnel-count">10</div><div class="funnel-pct">56%</div>
+      </div>
+      <div class="funnel-row">
+        <div class="funnel-stage" style="background:#6c3483;">SW / AI</div>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" data-w="78"></div></div>
+        <div class="funnel-count">14</div><div class="funnel-pct">78%</div>
+      </div>
+      <div class="funnel-row">
+        <div class="funnel-stage" style="background:#c0392b;">Cross-Discipline</div>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" data-w="33"></div></div>
+        <div class="funnel-count">6</div><div class="funnel-pct">33%</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHARTS -->
+  <section class="reveal">
+    <div class="sec-label"><span class="sec-num">02</span><div class="sec-line"></div></div>
+    <div class="sec-title">Branch & <em>Skills</em></div>
+    <div class="sec-sub">Who showed up — and what they bring to the build.</div>
+    <div class="charts-grid">
+
+      <!-- Branch bar chart -->
+      <div class="chart-card">
+        <div class="chart-title">Students by Branch</div>
+        <div id="branchChart">
+          <div class="bar-row"><span class="bar-label">ECE</span><div class="bar-track"><div class="bar-fill" data-w="100" style="background:#0d1b3e;"></div></div><span class="bar-num">12</span></div>
+          <div class="bar-row"><span class="bar-label">AI &amp; ML</span><div class="bar-track"><div class="bar-fill" data-w="17" style="background:#2471a3;"></div></div><span class="bar-num">2</span></div>
+          <div class="bar-row"><span class="bar-label">ME</span><div class="bar-track"><div class="bar-fill" data-w="8" style="background:#784212;"></div></div><span class="bar-num">1</span></div>
+          <div class="bar-row"><span class="bar-label">Automation &amp; Robotics</span><div class="bar-track"><div class="bar-fill" data-w="8" style="background:#1b7a3e;"></div></div><span class="bar-num">1</span></div>
+          <div class="bar-row"><span class="bar-label">CSE</span><div class="bar-track"><div class="bar-fill" data-w="8" style="background:#6c3483;"></div></div><span class="bar-num">1</span></div>
+          <div class="bar-row"><span class="bar-label">MCA</span><div class="bar-track"><div class="bar-fill" data-w="8" style="background:#c0392b;"></div></div><span class="bar-num">1</span></div>
+        </div>
+      </div>
+
+      <!-- Skills donut -->
+      <div class="chart-card">
+        <div class="chart-title">Skill Profile Distribution</div>
+        <div class="donut-wrap">
+          <svg class="donut-svg" width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#e8f0fe" stroke-width="18"/>
+            <!-- SW/AI: 8/18 = 44% = 289deg -->
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#2471a3" stroke-width="18"
+              stroke-dasharray="289 289" stroke-dashoffset="0"
+              transform="rotate(-90 60 60)" style="transition:stroke-dasharray 1.2s;"/>
+            <!-- Both: 6/18 = 33% = 216deg -->
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#1b7a3e" stroke-width="18"
+              stroke-dasharray="216 289" stroke-dashoffset="-289"
+              transform="rotate(-90 60 60)" style="transition:stroke-dasharray 1.2s;"/>
+            <!-- HW: 4/18 = 22% = 144deg -->
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#c0392b" stroke-width="18"
+              stroke-dasharray="144 360" stroke-dashoffset="-505"
+              transform="rotate(-90 60 60)" style="transition:stroke-dasharray 1.2s;"/>
+            <text x="60" y="55" text-anchor="middle" font-size="18" font-weight="600" fill="#0d1b3e" font-family="Cormorant Garamond, serif">18</text>
+            <text x="60" y="70" text-anchor="middle" font-size="9" fill="#6b7a99" font-family="Outfit, sans-serif">students</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="legend-row"><div class="legend-dot" style="background:#2471a3;"></div><span class="legend-label">Software / AI</span><span class="legend-val">8 &nbsp;·&nbsp; 44%</span></div>
+            <div class="legend-row"><div class="legend-dot" style="background:#1b7a3e;"></div><span class="legend-label">Both HW + SW</span><span class="legend-val">6 &nbsp;·&nbsp; 33%</span></div>
+            <div class="legend-row"><div class="legend-dot" style="background:#c0392b;"></div><span class="legend-label">Hardware</span><span class="legend-val">4 &nbsp;·&nbsp; 22%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Year chart -->
+      <div class="chart-card">
+        <div class="chart-title">Year of Study</div>
+        <div class="bar-row"><span class="bar-label">1st Year</span><div class="bar-track"><div class="bar-fill" data-w="100" style="background:#c9a84c;"></div></div><span class="bar-num">7</span></div>
+        <div class="bar-row"><span class="bar-label">2nd Year</span><div class="bar-track"><div class="bar-fill" data-w="100" style="background:#e8c97a;"></div></div><span class="bar-num">7</span></div>
+        <div class="bar-row"><span class="bar-label">3rd Year</span><div class="bar-track"><div class="bar-fill" data-w="57" style="background:#0d1b3e;"></div></div><span class="bar-num">4</span></div>
+      </div>
+
+      <!-- PS origin chart -->
+      <div class="chart-card">
+        <div class="chart-title">Problem Statement Origin</div>
+        <div class="bar-row"><span class="bar-label">Own PS</span><div class="bar-track"><div class="bar-fill" data-w="50" style="background:#1b7a3e;"></div></div><span class="bar-num">9</span></div>
+        <div class="bar-row"><span class="bar-label">Given PS</span><div class="bar-track"><div class="bar-fill" data-w="50" style="background:#0d1b3e;"></div></div><span class="bar-num">9</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- PRODUCT IDEAS -->
+  <section class="reveal">
+    <div class="sec-label"><span class="sec-num">03</span><div class="sec-line"></div></div>
+    <div class="sec-title">Product <em>Interest Map</em></div>
+    <div class="sec-sub">10 unique product concepts — 4 with 3 interested students each, ready for team formation.</div>
+    <div class="product-grid">
+      <div class="product-card hot"><span class="product-badge badge-both">HW + SW</span><div class="product-name">Elder Fall Detection System</div><div class="product-interest"><div class="interest-dots"><div class="interest-dot"></div><div class="interest-dot"></div><div class="interest-dot"></div><div class="interest-dot empty"></div></div><span class="interest-label">3 interested</span></div></div>
+      <div class="product-card hot"><span class="product-badge badge-hw">Hardware</span><div class="product-name">Mini Portable Dishwasher</div><div class="product-interest"><div class="interest-dots"><div class="interest-dot"></div><div class="interest-dot"></div><div class="interest-dot"></div><div class="interest-dot empty"></div></div><span class="interest-label">3 interested</span></div></div>
+      <div class="product-card hot"><span class="product-badge badge-both">HW + SW</span><div class="product-name">Pedestrian Safety — Street Dogs</div><div class="product-interest"><div class="interest-dots"><div class="interest-dot"></div><div class="interest-dot"></div><div class="interest-dot"></div><div class="interest-dot empty"></div></div><span class="interest-label">3 interested</span></div></div>
+      <div class="product-card hot"><span class="product-badge badge-hw">Hardware</span><div class="product-name">3D Printer / Assignment Writing Machine</div><div class="product-interest"><div class="interest-dots"><div class="interest-dot"></div><div class="interest-dot"></div><div class="interest-dot"></div><div class="interest-dot empty"></div></div><span class="interest-label">3 interested</span></div></div>
+      <div class="product-card solo"><span class="product-badge badge-hw">Hardware</span><div class="product-name">Bus Stop Crowd Sensor</div><div class="product-interest"><div class="interest-dots"><div class="interest-dot"></div><div class="interest-dot empty"></div><div class="interest-dot empty"></div><div class="interest-dot empty"></div></div><span class="interest-label">1 interested</span></div></div>
+      <div class="product-card solo"><span class="product-badge badge-sw">Software</span><div class="product-name">Eco Route & Ride Sharing Platform</div><div class="product-interest"><div class="interest-dots"><div class="interest-dot"></div><div class="interest-dot empty"></div><div class="interest-dot empty"></div><div class="interest-dot empty"></div></div><span class="interest-label">1 interested</span></div></div>
+      <div class="product-card solo"><span class="product-badge badge-hw">Hardware</span><div class="product-name">Miniature Digital Oscilloscope</div><div class="product-interest"><div class="interest-dots"><div class="interest-dot"></div><div class="interest-dot empty"></div><div class="interest-dot empty"></div><div class="interest-dot empty"></div></div><span class="interest-label">1 interested</span></div></div>
+      <div class="product-card solo"><span class="product-badge badge-hw">Hardware</span><div class="product-name">Unattended Fish Feeding Machine</div><div class="product-interest"><div class="interest-dots"><div class="interest-dot"></div><div class="interest-dot empty"></div><div class="interest-dot empty"></div><div class="interest-dot empty"></div></div><span class="interest-label">1 interested</span></div></div>
+      <div class="product-card solo"><span class="product-badge badge-sw">Software / AI</span><div class="product-name">AI Business Communication Assistant</div><div class="product-interest"><div class="interest-dots"><div class="interest-dot"></div><div class="interest-dot empty"></div><div class="interest-dot empty"></div><div class="interest-dot empty"></div></div><span class="interest-label">1 interested</span></div></div>
+      <div class="product-card solo"><span class="product-badge badge-both">HW + SW</span><div class="product-name">Motion-sensing Night Light for Elders</div><div class="product-interest"><div class="interest-dots"><div class="interest-dot"></div><div class="interest-dot empty"></div><div class="interest-dot empty"></div><div class="interest-dot empty"></div></div><span class="interest-label">1 interested</span></div></div>
+    </div>
+  </section>
+
+  <!-- STUDENT ROSTER -->
+  <section class="reveal">
+    <div class="sec-label"><span class="sec-num">04</span><div class="sec-line"></div></div>
+    <div class="sec-title">Student <em>Roster</em></div>
+    <div class="sec-sub">All 18 registered students — searchable by name, branch, or product.</div>
+    <div class="table-wrap">
+      <div class="table-search">
+        <input class="search-input" type="text" id="searchInput" placeholder="Search by name, branch, product..." oninput="filterTable()">
+      </div>
+      <table id="rosterTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>USN</th>
+            <th>Branch</th>
+            <th>Year</th>
+            <th>Skill Profile</th>
+            <th>Product Interest</th>
+            <th>Own PS</th>
+          </tr>
+        </thead>
+        <tbody id="rosterBody">
+          <tr><td>1</td><td class="td-name">Ningaraj Madari</td><td class="td-usn">01FE25BEC076</td><td>ECE</td><td><span class="yr-pill">1st</span></td><td><span class="skill-pill sp-hw">Hardware</span></td><td>3D Printer / Assignment Writing</td><td class="own-yes">✓ Yes</td></tr>
+          <tr><td>2</td><td class="td-name">Varun S Terdal</td><td class="td-usn">01FE23BCI068</td><td>AI&ML</td><td><span class="yr-pill">3rd</span></td><td><span class="skill-pill sp-sw">Software / AI</span></td><td>Elder Fall Detection System</td><td class="own-yes">✓ Yes</td></tr>
+          <tr><td>3</td><td class="td-name">Nandakumar Totad</td><td class="td-usn">01FE25BEC475</td><td>ECE</td><td><span class="yr-pill">1st</span></td><td><span class="skill-pill sp-both">Both HW+SW</span></td><td>3D Printer / Assignment Writing</td><td class="own-yes">✓ Yes</td></tr>
+          <tr><td>4</td><td class="td-name">Ranjita Nayak</td><td class="td-usn">01FE24BEC144</td><td>ECE</td><td><span class="yr-pill">2nd</span></td><td><span class="skill-pill sp-both">Both HW+SW</span></td><td>Elder Fall Detection System</td><td class="own-no">—</td></tr>
+          <tr><td>5</td><td class="td-name">Vivek Anvekar</td><td class="td-usn">01FE23BME107</td><td>ME</td><td><span class="yr-pill">3rd</span></td><td><span class="skill-pill sp-hw">Hardware</span></td><td>Bus Stop Crowd Sensor</td><td class="own-yes">✓ Yes</td></tr>
+          <tr><td>6</td><td class="td-name">Tanmay Kanagali</td><td class="td-usn">01FE25BEC394</td><td>ECE</td><td><span class="yr-pill">1st</span></td><td><span class="skill-pill sp-sw">Software / AI</span></td><td>Eco Route & Ride Sharing</td><td class="own-yes">✓ Yes</td></tr>
+          <tr><td>7</td><td class="td-name">Vaishakhi Waddinawar</td><td class="td-usn">01FE25BEC275</td><td>ECE</td><td><span class="yr-pill">1st</span></td><td><span class="skill-pill sp-both">Both HW+SW</span></td><td>Mini Portable Dishwasher</td><td class="own-no">—</td></tr>
+          <tr><td>8</td><td class="td-name">Karthik K Holla</td><td class="td-usn">01FE24BEC238</td><td>ECE</td><td><span class="yr-pill">2nd</span></td><td><span class="skill-pill sp-both">Both HW+SW</span></td><td>Miniature Digital Oscilloscope</td><td class="own-yes">✓ Yes</td></tr>
+          <tr><td>9</td><td class="td-name">Rahul R Masibinal</td><td class="td-usn">01FE25BEC048</td><td>ECE</td><td><span class="yr-pill">1st</span></td><td><span class="skill-pill sp-sw">Software / AI</span></td><td>3D Printer / Assignment Writing</td><td class="own-yes">✓ Yes</td></tr>
+          <tr><td>10</td><td class="td-name">Sudarshan Kulkarni</td><td class="td-usn">01FE25BEC276</td><td>ECE</td><td><span class="yr-pill">1st</span></td><td><span class="skill-pill sp-both">Both HW+SW</span></td><td>Mini Portable Dishwasher</td><td class="own-no">—</td></tr>
+          <tr><td>11</td><td class="td-name">Shree Rahul Bhat</td><td class="td-usn">01FE24BEC330</td><td>ECE</td><td><span class="yr-pill">2nd</span></td><td><span class="skill-pill sp-both">Both HW+SW</span></td><td>Unattended Fish Feeding Machine</td><td class="own-no">—</td></tr>
+          <tr><td>12</td><td class="td-name">Sameer S Kulkarni</td><td class="td-usn">01FE25BEC277</td><td>ECE</td><td><span class="yr-pill">1st</span></td><td><span class="skill-pill sp-sw">Software / AI</span></td><td>Elder Fall Detection System</td><td class="own-no">—</td></tr>
+          <tr><td>13</td><td class="td-name">Sanjana S Shinde</td><td class="td-usn">01FE23BAR020</td><td>AR</td><td><span class="yr-pill">3rd</span></td><td><span class="skill-pill sp-sw">Software / AI</span></td><td>AI Business Communication</td><td class="own-yes">✓ Yes</td></tr>
+          <tr><td>14</td><td class="td-name">Tejaskumar M</td><td class="td-usn">01D</td><td>AI&ML</td><td><span class="yr-pill">3rd</span></td><td><span class="skill-pill sp-sw">Software / AI</span></td><td>Motion-sensing Night Light</td><td class="own-no">—</td></tr>
+          <tr><td>15</td><td class="td-name">Shreyas A Devashetti</td><td class="td-usn">01FE24BEC255</td><td>ECE</td><td><span class="yr-pill">2nd</span></td><td><span class="skill-pill sp-hw">Hardware</span></td><td>Mini Portable Dishwasher</td><td class="own-no">—</td></tr>
+          <tr><td>16</td><td class="td-name">Ayaan Mohsin</td><td class="td-usn">01FE24BCS124</td><td>CSE</td><td><span class="yr-pill">2nd</span></td><td><span class="skill-pill sp-sw">Software / AI</span></td><td>Pedestrian Safety — Street Dogs</td><td class="own-yes">✓ Yes</td></tr>
+          <tr><td>17</td><td class="td-name">Mohammed Sami Tinmaker</td><td class="td-usn">01FE24BEC354</td><td>ECE</td><td><span class="yr-pill">2nd</span></td><td><span class="skill-pill sp-hw">Hardware</span></td><td>Pedestrian Safety — Street Dogs</td><td class="own-no">—</td></tr>
+          <tr><td>18</td><td class="td-name">Kunal Kathare</td><td class="td-usn">01FE24MCA048</td><td>MCA</td><td><span class="yr-pill">2nd</span></td><td><span class="skill-pill sp-sw">Software / AI</span></td><td>Pedestrian Safety — Street Dogs</td><td class="own-no">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section class="reveal">
+    <div class="sec-label"><span class="sec-num">05</span><div class="sec-line"></div></div>
+    <div class="sec-title">Key <em>Insights</em></div>
+    <div class="sec-sub">What the data is telling us — and what to act on before team formation.</div>
+    <div class="insights-grid">
+      <div class="insight-card dark">
+        <div class="insight-icon">⚡</div>
+        <div class="insight-title">4 Teams Are Already Visible</div>
+        <div class="insight-text">Elder Detection, Dishwasher, Street Dogs, 3D Printer each have 3 interested students. Team formation can begin immediately for these 4 products.</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">⚠️</div>
+        <div class="insight-title">ECE Dominance — Act Now</div>
+        <div class="insight-text">67% of registrations are ECE. Cross-discipline mandate requires urgent outreach to CSE, ME, and MBA students before teams are locked.</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">🔧</div>
+        <div class="insight-title">Strong Build Capability</div>
+        <div class="insight-text">77% of students have HW or SW skills. 6 students are full-stack HW+SW — ideal for the hardware-intensive products like the oscilloscope and dishwasher.</div>
+      </div>
+      <div class="insight-card dark">
+        <div class="insight-icon">💡</div>
+        <div class="insight-title">50% Brought Own Ideas</div>
+        <div class="insight-text">9 students came with their own problem statement — a strong signal of genuine product thinking. These students should be positioned as team leads.</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">🎓</div>
+        <div class="insight-title">4 Senior Students — Use Them</div>
+        <div class="insight-text">4 third-year students across AI&ML, ME, and AR. Each should lead one team — pairing them with 1st and 2nd year members creates the best learning dynamic.</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">🚀</div>
+        <div class="insight-title">6 Solo Ideas Need Homes</div>
+        <div class="insight-text">Bus Sensor, Oscilloscope, Fish Feeder, Night Light, Eco Route, AI Comm have 1 student each. Match them to existing teams or pair similar-domain solos together.</div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /container -->
+
+<script>
+// Scroll reveal
+const reveals = document.querySelectorAll('.reveal');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+},{threshold:0.1});
+reveals.forEach(el => obs.observe(el));
+
+// Animate bars on scroll
+const barObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      e.target.querySelectorAll('.bar-fill, .funnel-bar').forEach(bar => {
+        const w = bar.getAttribute('data-w');
+        if(w) setTimeout(() => { bar.style.width = w + '%'; }, 200);
+      });
+    }
+  });
+},{threshold:0.2});
+document.querySelectorAll('.chart-card, .funnel-wrap').forEach(el => barObs.observe(el));
+
+// Table search
+function filterTable(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#rosterBody tr').forEach(tr => {
+    tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

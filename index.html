@@ -274,9 +274,9 @@ td{padding:9px 14px;vertical-align:middle;}
      Deploy settings: Execute as Me · Anyone can access
      ═════════════════════════════════════════════════════ -->
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxoXz6Czoz4vR0-p6YIKYTFQ0R6RvR1wZCh7fxTd3MRx-2-HbKwg3R5Imlo_R2IOesdaw/exec";
+const GAS_URL = "PASTE_YOUR_GAS_WEB_APP_URL_HERE";
 // Example:
-// const GAS_URL = "https://script.google.com/macros/s/AKfycbxoXz6Czoz4vR0-p6YIKYTFQ0R6RvR1wZCh7fxTd3MRx-2-HbKwg3R5Imlo_R2IOesdaw/exec";
+// const GAS_URL = "https://script.google.com/macros/s/AKfy.../exec";
 </script>
 
 <!-- STICKY FOOTER -->
@@ -327,7 +327,7 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbxoXz6Czoz4vR0-p6YIKYTF
     <section class="reveal">
       <div class="sec-label"><span class="sec-num">01</span><div class="sec-line"></div></div>
       <div class="sec-title">Registration <em>Funnel</em></div>
-      <div class="sec-sub">From session awareness to cross-discipline readiness — where the cohort stands.</div>
+      <div class="sec-sub" id="funnelSub"></div>
       <div class="funnel-wrap" id="funnelWrap"></div>
     </section>
 
@@ -351,7 +351,7 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbxoXz6Czoz4vR0-p6YIKYTF
     <section class="reveal">
       <div class="sec-label"><span class="sec-num">04</span><div class="sec-line"></div></div>
       <div class="sec-title">Suggested <em>Teams</em></div>
-      <div class="sec-sub">Auto-generated from product interest, skill profiles, and year — To be reviewed and confirmed by admin before finalising.</div>
+      <div class="sec-sub" id="teamsSub"></div>
       <div class="teams-grid" id="teamsGrid"></div>
     </section>
 
@@ -465,7 +465,9 @@ function renderKPIs(kpis, config){
   ).join('');
 }
 
-function renderFunnel(funnel){
+function renderFunnel(funnel, total){
+  document.getElementById('funnelSub').textContent =
+    `${total} students across ${funnel.length} stages — from session awareness to cross-discipline readiness.`;
   const max = funnel[0].count;
   document.getElementById('funnelWrap').innerHTML = funnel.map(f =>
     `<div class="funnel-row">
@@ -592,7 +594,13 @@ function renderProducts(products, total){
   ).join('');
 }
 
-function renderTeams(teams){
+function renderTeams(teams, total){
+  const ready  = teams.filter(t => t.status === 'Ready').length;
+  const solo   = teams.filter(t => t.memberCount === 1).length;
+  document.getElementById('teamsSub').textContent =
+    `${teams.length} suggested teams across ${total} students — ` +
+    `${ready} ready to form, ${solo} needing additional members. ` +
+    `Reviewed and confirmed by admin before finalising.`;
   const teamColors = ['#0d1b3e','#1a2f5e','#2471a3','#6c3483','#1b7a3e','#784212','#c0392b','#c9a84c'];
 
   document.getElementById('teamsGrid').innerHTML = teams.map((team, ti) => {
@@ -747,10 +755,10 @@ async function loadReport(){
 
     // render all sections
     renderKPIs(data.kpis, data.config);
-    renderFunnel(data.funnel);
+    renderFunnel(data.funnel, data.kpis.total);
     renderCharts(data.kpis);
     renderProducts(data.kpis.products, data.kpis.total);
-    renderTeams(data.teams);
+    renderTeams(data.teams, data.kpis.total);
     renderRoster(data.students);
     renderInsights(data.kpis, data.teams);
 

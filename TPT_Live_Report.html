@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TPT Funnel Report — EE Lab, KLE-CTIE</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── PASTE YOUR DEPLOYED GAS WEB APP URL BELOW ── */
+/* See instructions at bottom of this file        */
+
+:root{
+  --navy:#0d1b3e;--navy-mid:#1a2f5e;
+  --gold:#c9a84c;--gold-l:#e8c97a;--gold-pale:#f5e9c8;
+  --cream:#faf8f3;--soft:#f0ece0;--white:#ffffff;
+  --text:#0d1b3e;--muted:#6b7a99;--border:rgba(13,27,62,0.10);
+  --shadow:0 8px 32px rgba(13,27,62,0.10);
+  --green:#1b7a3e;--red:#c0392b;--blue:#2471a3;--purple:#6c3483;--brown:#784212;
+  --footer-h:36px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Outfit',sans-serif;background:var(--soft);color:var(--text);padding-bottom:calc(var(--footer-h) + 1rem);}
+
+/* ── STICKY FOOTER ── */
+.sticky-footer{
+  position:fixed;bottom:0;left:0;right:0;height:var(--footer-h);
+  background:var(--navy);border-top:1px solid rgba(201,168,76,0.2);
+  display:flex;align-items:center;justify-content:center;z-index:300;
+}
+.sticky-footer span{font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.06em;}
+.sticky-footer b{color:var(--gold);font-weight:400;font-style:italic;}
+
+/* ── LOADING ── */
+.loading-screen{
+  position:fixed;inset:0;background:var(--navy);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:500;transition:opacity 0.5s ease;
+}
+.loading-screen.hidden{opacity:0;pointer-events:none;}
+.loading-logo{
+  font-family:'Cormorant Garamond',serif;font-size:36px;
+  font-weight:600;color:var(--white);margin-bottom:0.5rem;
+}
+.loading-logo span{color:var(--gold);font-style:italic;}
+.loading-tag{font-size:12px;color:rgba(255,255,255,0.4);font-style:italic;margin-bottom:2rem;}
+.loading-bar-track{width:220px;height:3px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;}
+.loading-bar-fill{height:100%;background:linear-gradient(to right,var(--gold),var(--gold-l));border-radius:3px;animation:loadPulse 1.5s ease-in-out infinite;}
+@keyframes loadPulse{0%{width:0%}60%{width:80%}100%{width:100%}}
+.loading-msg{font-size:11px;color:rgba(255,255,255,0.3);margin-top:1rem;letter-spacing:0.06em;}
+
+/* ── ERROR ── */
+.error-screen{
+  display:none;max-width:480px;margin:4rem auto;
+  background:var(--white);border-radius:16px;padding:2.5rem;
+  border:1px solid var(--border);text-align:center;
+}
+.error-screen.show{display:block;}
+.error-title{font-size:18px;font-weight:600;color:var(--red);margin-bottom:0.5rem;}
+.error-msg{font-size:13px;color:var(--muted);line-height:1.7;}
+.error-code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--soft);padding:8px 12px;border-radius:8px;margin-top:1rem;color:var(--muted);}
+
+/* ── HEADER ── */
+.report-header{
+  background:var(--navy);padding:2.5rem 2rem 2rem;
+  position:relative;overflow:hidden;
+}
+.report-header::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(201,168,76,0.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(201,168,76,0.05) 1px,transparent 1px);
+  background-size:50px 50px;
+}
+.header-inner{max-width:1100px;margin:0 auto;position:relative;z-index:1;
+  display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;}
+.header-left{}
+.header-eyebrow{font-size:11px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:0.5rem;}
+.header-title{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,5vw,50px);font-weight:600;color:var(--white);line-height:1.1;margin-bottom:0.3rem;}
+.header-title span{color:var(--gold);font-style:italic;}
+.header-sub{font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:1rem;}
+.gold-bar{height:3px;background:linear-gradient(to right,var(--gold),var(--gold-l),var(--gold));border-radius:2px;max-width:280px;}
+.header-right{text-align:right;}
+.header-ts{font-size:11px;color:rgba(255,255,255,0.3);font-family:'JetBrains Mono',monospace;}
+.header-ts span{color:var(--gold);}
+.live-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(27,122,62,0.2);border:1px solid rgba(27,122,62,0.4);
+  border-radius:20px;padding:4px 10px;margin-top:6px;
+}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#2ecc71;animation:livePulse 2s ease infinite;}
+@keyframes livePulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.live-text{font-size:10px;color:#2ecc71;font-weight:500;letter-spacing:0.06em;}
+
+/* ── CONTAINER ── */
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+
+/* ── KPI ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin-bottom:2.5rem;}
+.kpi-card{
+  background:var(--white);border-radius:14px;padding:1.2rem 1rem;
+  border:1px solid var(--border);box-shadow:var(--shadow);
+  text-align:center;transition:transform 0.2s;
+}
+.kpi-card:hover{transform:translateY(-3px);}
+.kpi-label{font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.kpi-value{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:600;line-height:1;}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* ── SECTION ── */
+.sec-label{display:flex;align-items:center;gap:10px;margin-bottom:0.75rem;}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);}
+.sec-line{flex:1;height:1px;background:rgba(201,168,76,0.25);max-width:50px;}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:clamp(22px,3vw,30px);font-weight:600;color:var(--navy);margin-bottom:0.4rem;}
+.sec-title em{color:var(--gold);font-style:italic;}
+.sec-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;}
+section{margin-bottom:3rem;}
+
+/* ── FUNNEL ── */
+.funnel-wrap{display:flex;flex-direction:column;gap:6px;}
+.funnel-row{
+  display:grid;grid-template-columns:150px 1fr 52px 52px;
+  gap:12px;align-items:center;
+  padding:10px 16px;background:var(--white);
+  border-radius:10px;border:1px solid var(--border);
+}
+.funnel-stage{font-size:11px;font-weight:600;color:var(--white);padding:4px 10px;border-radius:20px;text-align:center;}
+.funnel-bar-wrap{height:10px;background:rgba(13,27,62,0.07);border-radius:6px;overflow:hidden;}
+.funnel-bar{height:100%;border-radius:6px;width:0;background:linear-gradient(to right,var(--gold),var(--gold-l));transition:width 1.2s cubic-bezier(0.25,0.46,0.45,0.94);}
+.funnel-count{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--navy);text-align:center;}
+.funnel-pct{font-size:11px;color:var(--muted);text-align:center;}
+
+/* ── CHARTS ── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.chart-card{background:var(--white);border-radius:14px;padding:1.5rem;border:1px solid var(--border);box-shadow:var(--shadow);}
+.chart-title{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:1.2rem;letter-spacing:0.05em;text-transform:uppercase;}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.bar-label{font-size:12px;color:var(--text);min-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-track{flex:1;height:8px;background:rgba(13,27,62,0.07);border-radius:6px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:6px;width:0;transition:width 1.2s cubic-bezier(0.25,0.46,0.45,0.94);}
+.bar-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);min-width:20px;text-align:right;}
+.donut-wrap{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;}
+.donut-legend{display:flex;flex-direction:column;gap:8px;}
+.legend-row{display:flex;align-items:center;gap:8px;}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.legend-label{font-size:12px;color:var(--text);}
+.legend-val{font-size:11px;color:var(--muted);margin-left:6px;}
+
+/* ── PRODUCT CARDS ── */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;}
+.product-card{
+  background:var(--white);border:1px solid var(--border);border-radius:12px;
+  padding:1.1rem;position:relative;overflow:hidden;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.product-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);}
+.product-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.product-card.hot::before{background:linear-gradient(to right,var(--gold),var(--gold-l));}
+.product-card.solo::before{background:rgba(13,27,62,0.12);}
+.product-badge{display:inline-block;font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;margin-bottom:8px;}
+.b-hw{background:#fce8e8;color:var(--red);}
+.b-sw{background:#e8f0fe;color:var(--blue);}
+.b-both{background:#e8f5e9;color:var(--green);}
+.product-name{font-size:13px;font-weight:600;color:var(--navy);line-height:1.4;margin-bottom:8px;}
+.interest-row{display:flex;align-items:center;gap:6px;}
+.i-dots{display:flex;gap:3px;}
+.i-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);}
+.i-dot.empty{background:rgba(13,27,62,0.1);}
+.i-label{font-size:11px;color:var(--muted);}
+
+/* ── TEAM CARDS ── */
+.teams-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;}
+.team-card{
+  background:var(--white);border-radius:14px;overflow:hidden;
+  border:1px solid var(--border);box-shadow:var(--shadow);
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.team-card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(13,27,62,0.12);}
+.team-card-header{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;}
+.team-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,0.5);}
+.team-status-badge{font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;}
+.ts-ready{background:rgba(27,122,62,0.2);color:#2ecc71;}
+.ts-gap{background:rgba(201,168,76,0.2);color:var(--gold-l);}
+.ts-cross{background:rgba(192,57,43,0.2);color:#e74c3c;}
+.ts-need{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);}
+.team-card-body{padding:14px 18px;}
+.team-product{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px;line-height:1.4;}
+.team-type-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;margin-bottom:10px;}
+.team-lead-row{display:flex;align-items:center;gap:6px;margin-bottom:10px;}
+.lead-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
+.lead-name{font-size:12px;font-weight:600;color:var(--navy);}
+.lead-crown{font-size:12px;}
+.members-list{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.member-row{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 10px;border-radius:8px;
+  background:var(--cream);
+}
+.member-row.is-lead{background:var(--gold-pale);border:1px solid rgba(201,168,76,0.3);}
+.member-avatar{
+  width:26px;height:26px;border-radius:50%;
+  background:var(--navy);color:var(--gold);
+  font-size:11px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.member-row.is-lead .member-avatar{background:var(--gold);color:var(--navy);}
+.member-info{flex:1;min-width:0;}
+.member-name{font-size:12px;font-weight:500;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.member-meta{font-size:10px;color:var(--muted);}
+.member-skill-pill{font-size:10px;padding:1px 7px;border-radius:20px;font-weight:500;flex-shrink:0;}
+.team-flags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.flag{font-size:10px;padding:3px 8px;border-radius:20px;display:flex;align-items:center;gap:4px;}
+.flag-ok{background:#e8f5e9;color:var(--green);}
+.flag-warn{background:#fff8e1;color:#e65100;}
+.flag-gap{border:1px dashed rgba(13,27,62,0.2);color:var(--muted);}
+.team-branches{font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* ── ROSTER TABLE ── */
+.table-wrap{background:var(--white);border-radius:14px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow);}
+.table-toolbar{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.search-input{
+  flex:1;min-width:200px;border:1px solid var(--border);border-radius:8px;
+  padding:7px 12px;font-size:13px;font-family:'Outfit',sans-serif;
+  outline:none;color:var(--text);background:var(--cream);
+}
+.search-input:focus{border-color:var(--gold);}
+.table-count{font-size:12px;color:var(--muted);white-space:nowrap;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{
+  background:var(--navy);color:rgba(255,255,255,0.65);
+  font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+  padding:10px 14px;text-align:left;
+}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s;}
+tbody tr:hover{background:var(--cream);}
+tbody tr:last-child{border-bottom:none;}
+td{padding:9px 14px;vertical-align:middle;}
+.td-name{font-weight:500;color:var(--navy);}
+.td-usn{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;}
+.p-sw{background:#e8f0fe;color:var(--blue);}
+.p-hw{background:#fce8e8;color:var(--red);}
+.p-both{background:#e8f5e9;color:var(--green);}
+.p-gen{background:#f5f5f5;color:#666;}
+.p-yr{background:var(--gold-pale);color:var(--navy);}
+.own-yes{color:var(--green);font-size:11px;font-weight:600;}
+.own-no{color:var(--muted);font-size:11px;}
+
+/* ── INSIGHTS ── */
+.insights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+.insight-card{background:var(--white);border-radius:12px;padding:1.4rem;border:1px solid var(--border);}
+.insight-card.dark{background:var(--navy);}
+.insight-icon{font-size:24px;margin-bottom:0.75rem;}
+.insight-title{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:0.4rem;}
+.insight-card.dark .insight-title{color:var(--white);}
+.insight-text{font-size:13px;color:var(--muted);line-height:1.65;}
+.insight-card.dark .insight-text{color:rgba(255,255,255,0.5);}
+
+/* ── REVEAL ── */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity 0.6s ease,transform 0.6s ease;}
+.reveal.vis{opacity:1;transform:translateY(0);}
+
+@media(max-width:640px){
+  .charts-grid,.funnel-row{grid-template-columns:1fr;}
+  .funnel-row{grid-template-columns:110px 1fr 40px 40px;}
+  .header-inner{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ CONFIG — SET GAS URL HERE ═══════════════════════════
+     After deploying GAS as Web App, paste the URL below.
+     Deploy settings: Execute as Me · Anyone can access
+     ═════════════════════════════════════════════════════ -->
+<script>
+const GAS_URL = "PASTE_YOUR_GAS_WEB_APP_URL_HERE";
+// Example:
+// const GAS_URL = "https://script.google.com/macros/s/AKfycbxoXz6Czoz4vR0-p6YIKYTFQ0R6RvR1wZCh7fxTd3MRx-2-HbKwg3R5Imlo_R2IOesdaw/exec";
+</script>
+
+<!-- STICKY FOOTER -->
+<div class="sticky-footer">
+  <span>Made with ❤ ~rhc &nbsp;<b>·</b>&nbsp; EE Lab, KLE-CTIE &nbsp;<b>·</b>&nbsp; Tech Prowess Team &nbsp;<b>·</b>&nbsp; May 2026</span>
+</div>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-logo">Tech <span>Prowess</span> Team</div>
+  <div class="loading-tag">"Build Beyond Boundaries"</div>
+  <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+  <div class="loading-msg" id="loadingMsg">Connecting to Google Sheet...</div>
+</div>
+
+<!-- ERROR -->
+<div class="error-screen" id="errorScreen">
+  <div class="error-title">Could not load report</div>
+  <div class="error-msg">The GAS Web App could not be reached. Make sure the script is deployed correctly and the URL is set in this HTML file.</div>
+  <div class="error-code" id="errorDetail"></div>
+</div>
+
+<!-- REPORT — hidden until data loads -->
+<div id="reportRoot" style="display:none;">
+
+  <!-- HEADER -->
+  <div class="report-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <div class="header-eyebrow">EE Lab · KLE-CTIE · KLE Technological University × Cshine</div>
+        <div class="header-title">Tech <span>Prowess</span> Team<br>Funnel Report</div>
+        <div class="header-sub" id="headerSub">Student Registration & Interest Analysis</div>
+        <div class="gold-bar"></div>
+      </div>
+      <div class="header-right">
+        <div class="header-ts">Last updated<br><span id="lastUpdated">—</span></div>
+        <div class="live-badge"><div class="live-dot"></div><span class="live-text">LIVE</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid" style="margin-top:2rem;" id="kpiGrid"></div>
+
+    <!-- FUNNEL -->
+    <section class="reveal">
+      <div class="sec-label"><span class="sec-num">01</span><div class="sec-line"></div></div>
+      <div class="sec-title">Registration <em>Funnel</em></div>
+      <div class="sec-sub">From session awareness to cross-discipline readiness — where the cohort stands.</div>
+      <div class="funnel-wrap" id="funnelWrap"></div>
+    </section>
+
+    <!-- CHARTS -->
+    <section class="reveal">
+      <div class="sec-label"><span class="sec-num">02</span><div class="sec-line"></div></div>
+      <div class="sec-title">Branch & <em>Skills</em></div>
+      <div class="sec-sub">Who showed up — and what they bring to the build.</div>
+      <div class="charts-grid" id="chartsGrid"></div>
+    </section>
+
+    <!-- PRODUCT IDEAS -->
+    <section class="reveal">
+      <div class="sec-label"><span class="sec-num">03</span><div class="sec-line"></div></div>
+      <div class="sec-title">Product <em>Interest Map</em></div>
+      <div class="sec-sub" id="productSub"></div>
+      <div class="product-grid" id="productGrid"></div>
+    </section>
+
+    <!-- TEAM RECOMMENDATIONS -->
+    <section class="reveal">
+      <div class="sec-label"><span class="sec-num">04</span><div class="sec-line"></div></div>
+      <div class="sec-title">Suggested <em>Teams</em></div>
+      <div class="sec-sub">Auto-generated from product interest, skill profiles, and year — reviewed and confirmed by admin before finalising.</div>
+      <div class="teams-grid" id="teamsGrid"></div>
+    </section>
+
+    <!-- STUDENT ROSTER -->
+    <section class="reveal">
+      <div class="sec-label"><span class="sec-num">05</span><div class="sec-line"></div></div>
+      <div class="sec-title">Student <em>Roster</em></div>
+      <div class="sec-sub" id="rosterSub"></div>
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <input class="search-input" id="searchInput" type="text" placeholder="Search name, branch, product..." oninput="filterTable()">
+          <span class="table-count" id="tableCount"></span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Name</th><th>USN</th><th>Branch</th>
+              <th>Year</th><th>Skill Profile</th><th>Product Interest</th><th>Own PS</th>
+            </tr>
+          </thead>
+          <tbody id="rosterBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- INSIGHTS -->
+    <section class="reveal">
+      <div class="sec-label"><span class="sec-num">06</span><div class="sec-line"></div></div>
+      <div class="sec-title">Key <em>Insights</em></div>
+      <div class="sec-sub">What the data is telling us — and what to act on before team formation.</div>
+      <div class="insights-grid" id="insightsGrid"></div>
+    </section>
+
+  </div>
+</div><!-- /reportRoot -->
+
+<script>
+// ══════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════
+const SKILL_COLORS = {
+  'Software / AI' : { bg:'#e8f0fe', color:var_('--blue'),  cls:'p-sw'  },
+  'Both HW + SW'  : { bg:'#e8f5e9', color:var_('--green'), cls:'p-both'},
+  'Hardware'      : { bg:'#fce8e8', color:var_('--red'),   cls:'p-hw'  },
+  'General'       : { bg:'#f5f5f5', color:'#666',          cls:'p-gen' }
+};
+function var_(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+function skillPill(type){
+  const m = SKILL_COLORS[type] || SKILL_COLORS['General'];
+  return `<span class="pill ${m.cls}">${type}</span>`;
+}
+
+function pct(n, total){ return Math.round(n / total * 100); }
+
+function productBadge(type){
+  if (type === 'Hardware')  return `<span class="product-badge b-hw">Hardware</span>`;
+  if (type === 'Software')  return `<span class="product-badge b-sw">Software / AI</span>`;
+  return `<span class="product-badge b-both">HW + SW</span>`;
+}
+
+function interestDots(count){
+  const max = 4;
+  let html = '<div class="i-dots">';
+  for (let i = 0; i < max; i++)
+    html += `<div class="i-dot${i < count ? '' : ' empty'}"></div>`;
+  return html + '</div>';
+}
+
+function teamStatusBadge(status){
+  const map = {
+    'Ready'                   : 'ts-ready',
+    'Skill Gap'               : 'ts-gap',
+    'Needs Cross-Discipline'  : 'ts-cross',
+    'Needs Members'           : 'ts-need'
+  };
+  return `<span class="team-status-badge ${map[status]||'ts-need'}">${status}</span>`;
+}
+
+function memberAvatar(name){
+  const parts = name.trim().split(' ');
+  const ini   = parts.length >= 2
+    ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase()
+    : name.slice(0,2).toUpperCase();
+  return ini;
+}
+
+function branchColors(i){
+  const cols = ['#0d1b3e','#2471a3','#784212','#1b7a3e','#6c3483','#c0392b','#c9a84c'];
+  return cols[i % cols.length];
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER FUNCTIONS
+// ══════════════════════════════════════════════════════
+function renderKPIs(kpis, config){
+  const cards = [
+    { label:'Total Registrations', value:kpis.total,          sub:'Cohort ' + config.cohort,  color:'var(--navy)'   },
+    { label:'Branches',            value:kpis.uniqueBranches,  sub:'Disciplines',              color:'var(--blue)'   },
+    { label:'Unique Ideas',        value:kpis.uniqueProducts,  sub:'Product concepts',         color:'var(--purple)' },
+    { label:'Own PS',              value:kpis.ownPsCount,      sub:'Brought own problem',      color:'var(--green)'  },
+    { label:'HW + SW Skilled',     value:kpis.hwCap,           sub:'Full-stack builders',      color:'var(--brown)'  },
+    { label:'Senior Students',     value:kpis.seniorCt,        sub:'3rd year+ leads',          color:'var(--red)'    }
+  ];
+  document.getElementById('kpiGrid').innerHTML = cards.map(c =>
+    `<div class="kpi-card reveal">
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-value" style="color:${c.color}">${c.value}</div>
+      <div class="kpi-sub">${c.sub}</div>
+    </div>`
+  ).join('');
+}
+
+function renderFunnel(funnel){
+  const max = funnel[0].count;
+  document.getElementById('funnelWrap').innerHTML = funnel.map(f =>
+    `<div class="funnel-row">
+      <div class="funnel-stage" style="background:${f.color}">${f.stage}</div>
+      <div class="funnel-bar-wrap"><div class="funnel-bar" data-w="${Math.round(f.count/max*100)}"></div></div>
+      <div class="funnel-count">${f.count}</div>
+      <div class="funnel-pct">${f.pct}%</div>
+    </div>`
+  ).join('');
+}
+
+function renderCharts(kpis){
+  const branches   = kpis.branches;
+  const years      = kpis.years;
+  const skillTypes = kpis.skillTypes;
+  const total      = kpis.total;
+  const maxBr      = Math.max(...Object.values(branches));
+
+  // branch bar chart
+  const branchHtml = Object.entries(branches)
+    .sort((a,b) => b[1]-a[1])
+    .map(([br,cnt], i) =>
+      `<div class="bar-row">
+        <span class="bar-label" title="${br}">${br}</span>
+        <div class="bar-track"><div class="bar-fill" data-w="${Math.round(cnt/maxBr*100)}" style="background:${branchColors(i)}"></div></div>
+        <span class="bar-num">${cnt}</span>
+      </div>`
+    ).join('');
+
+  // year bar chart
+  const yearOrder = ['1st Year','2nd Year','3rd Year','4th Year','PG'];
+  const maxYr = Math.max(...Object.values(years));
+  const yearHtml = yearOrder
+    .filter(y => years[y])
+    .map(y =>
+      `<div class="bar-row">
+        <span class="bar-label">${y}</span>
+        <div class="bar-track"><div class="bar-fill" data-w="${Math.round(years[y]/maxYr*100)}" style="background:var(--gold)"></div></div>
+        <span class="bar-num">${years[y]}</span>
+      </div>`
+    ).join('');
+
+  // skill donut
+  const skillCols  = {'Software / AI':'#2471a3','Both HW + SW':'#1b7a3e','Hardware':'#c0392b','General':'#888'};
+  const skillOrder = ['Software / AI','Both HW + SW','Hardware','General'];
+  const circ       = 2 * Math.PI * 46; // r=46
+  let offset = 0;
+  const segments = skillOrder.filter(s => skillTypes[s]).map(s => {
+    const n   = skillTypes[s] || 0;
+    const len = circ * n / total;
+    const seg = { label:s, count:n, color:skillCols[s], dasharray:`${len} ${circ}`, dashoffset: -offset };
+    offset += len;
+    return seg;
+  });
+
+  const donutSvg = `<svg width="120" height="120" viewBox="0 0 120 120">
+    <circle cx="60" cy="60" r="46" fill="none" stroke="#eee" stroke-width="18"/>
+    ${segments.map(s =>
+      `<circle cx="60" cy="60" r="46" fill="none" stroke="${s.color}" stroke-width="18"
+        stroke-dasharray="${s.dasharray}" stroke-dashoffset="${s.dashoffset}"
+        transform="rotate(-90 60 60)"/>`
+    ).join('')}
+    <text x="60" y="55" text-anchor="middle" font-size="18" font-weight="600" fill="#0d1b3e" font-family="Cormorant Garamond,serif">${total}</text>
+    <text x="60" y="70" text-anchor="middle" font-size="9" fill="#6b7a99" font-family="Outfit,sans-serif">students</text>
+  </svg>`;
+
+  const legendHtml = segments.map(s =>
+    `<div class="legend-row">
+      <div class="legend-dot" style="background:${s.color}"></div>
+      <span class="legend-label">${s.label}</span>
+      <span class="legend-val">${s.count} · ${pct(s.count,total)}%</span>
+    </div>`
+  ).join('');
+
+  // PS origin
+  const ownPs = kpis.ownPsCount;
+  const given = total - ownPs;
+  const psHtml = [
+    { label:'Own PS', count:ownPs, color:var_('--green') },
+    { label:'Given PS', count:given, color:var_('--navy') }
+  ].map(r =>
+    `<div class="bar-row">
+      <span class="bar-label">${r.label}</span>
+      <div class="bar-track"><div class="bar-fill" data-w="${pct(r.count,total)}" style="background:${r.color}"></div></div>
+      <span class="bar-num">${r.count}</span>
+    </div>`
+  ).join('');
+
+  document.getElementById('chartsGrid').innerHTML = `
+    <div class="chart-card"><div class="chart-title">Students by Branch</div>${branchHtml}</div>
+    <div class="chart-card"><div class="chart-title">Skill Profile Distribution</div>
+      <div class="donut-wrap">
+        ${donutSvg}
+        <div class="donut-legend">${legendHtml}</div>
+      </div>
+    </div>
+    <div class="chart-card"><div class="chart-title">Year of Study</div>${yearHtml}</div>
+    <div class="chart-card"><div class="chart-title">Problem Statement Origin</div>${psHtml}</div>
+  `;
+}
+
+function renderProducts(products, total){
+  const sorted = Object.entries(products).sort((a,b) => b[1]-a[1]);
+  document.getElementById('productSub').textContent =
+    `${sorted.length} unique product concepts — ${sorted.filter(p=>p[1]>=3).length} with 3+ interested students, ready for team formation.`;
+
+  const productTypeMap = p => {
+    const v = p.toLowerCase();
+    if (v.includes('platform')||v.includes('ai')||v.includes('communication')||v.includes('app')) return 'Software';
+    if (v.includes('machine')||v.includes('sensor')||v.includes('oscilloscope')||
+        v.includes('dishwasher')||v.includes('3d')||v.includes('fish')||v.includes('light')) return 'Hardware';
+    return 'HW + SW';
+  };
+
+  document.getElementById('productGrid').innerHTML = sorted.map(([name, cnt]) =>
+    `<div class="product-card ${cnt >= 3 ? 'hot' : 'solo'}">
+      ${productBadge(productTypeMap(name))}
+      <div class="product-name">${name}</div>
+      <div class="interest-row">
+        ${interestDots(Math.min(cnt,4))}
+        <span class="i-label">${cnt} interested</span>
+      </div>
+    </div>`
+  ).join('');
+}
+
+function renderTeams(teams){
+  const teamColors = ['#0d1b3e','#1a2f5e','#2471a3','#6c3483','#1b7a3e','#784212','#c0392b','#c9a84c'];
+
+  document.getElementById('teamsGrid').innerHTML = teams.map((team, ti) => {
+    const hdr = teamColors[ti % teamColors.length];
+    const membersHtml = team.members.map(m =>
+      `<div class="member-row ${m.isLead ? 'is-lead' : ''}">
+        <div class="member-avatar">${memberAvatar(m.name)}</div>
+        <div class="member-info">
+          <div class="member-name">${m.name}${m.isLead ? ' 👑' : ''}</div>
+          <div class="member-meta">${m.branch} · ${m.year}</div>
+        </div>
+        ${skillPill(m.skillType)}
+      </div>`
+    ).join('');
+
+    const flagsHtml =
+      `<span class="flag ${team.isCrossDisc ? 'flag-ok' : 'flag-warn'}">${team.isCrossDisc ? '✓' : '⚠'} Cross-discipline</span>` +
+      `<span class="flag ${team.hasHW ? 'flag-ok' : 'flag-gap'}">${team.hasHW ? '✓' : '+'} Hardware</span>` +
+      `<span class="flag ${team.hasSW ? 'flag-ok' : 'flag-gap'}">${team.hasSW ? '✓' : '+'} Software</span>` +
+      (team.gaps.length ? team.gaps.map(g => `<span class="flag flag-gap">Need: ${g}</span>`).join('') : '');
+
+    return `<div class="team-card">
+      <div class="team-card-header" style="background:${hdr}">
+        <span class="team-id">${team.teamId}</span>
+        ${teamStatusBadge(team.status)}
+      </div>
+      <div class="team-card-body">
+        ${productBadge(team.productType)}
+        <div class="team-product">${team.product}</div>
+        <div class="team-lead-row">
+          <span class="lead-label">Suggested Lead</span>
+          <span class="lead-crown">👑</span>
+          <span class="lead-name">${team.suggestedLead}</span>
+        </div>
+        <div class="members-list">${membersHtml}</div>
+        <div class="team-flags">${flagsHtml}</div>
+        <div class="team-branches">Branches: ${team.branches.join(' · ')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRoster(students){
+  document.getElementById('rosterSub').textContent =
+    `All ${students.length} registered students — searchable by name, branch, or product.`;
+  document.getElementById('tableCount').textContent = `${students.length} students`;
+
+  document.getElementById('rosterBody').innerHTML = students.map((s, i) =>
+    `<tr>
+      <td>${i+1}</td>
+      <td class="td-name">${s.name}</td>
+      <td class="td-usn">${s.usn}</td>
+      <td>${s.branch}</td>
+      <td><span class="pill p-yr">${s.year}</span></td>
+      <td>${skillPill(s.skillType)}</td>
+      <td>${s.product}</td>
+      <td>${s.hasOwnPs ? '<span class="own-yes">✓ Yes</span>' : '<span class="own-no">—</span>'}</td>
+    </tr>`
+  ).join('');
+}
+
+function renderInsights(kpis, teams){
+  const hotTeams  = teams.filter(t => t.memberCount >= 3).length;
+  const soloIdeas = teams.filter(t => t.memberCount === 1).length;
+  const readyTeams = teams.filter(t => t.status === 'Ready').length;
+
+  const insights = [
+    { icon:'⚡', title:`${hotTeams} Teams Ready to Form`, dark:true,
+      text:`${hotTeams} products already have 3+ interested students. Team formation can begin immediately without waiting for more registrations.` },
+    { icon:'⚠️', title:'ECE Dominance — Act Now', dark:false,
+      text:`${kpis.branches['ECE'] || 0} of ${kpis.total} registrations are ECE. Cross-discipline mandate requires targeted outreach to CSE, ME, and MBA students before teams are locked.` },
+    { icon:'🔧', title:'Strong Build Capability', dark:false,
+      text:`${pct(kpis.hwCap, kpis.total)}% have HW skills, ${pct(kpis.swCap, kpis.total)}% have SW/AI skills. ${kpis.skillTypes['Both HW + SW'] || 0} students cover both — ideal for integrated product builds.` },
+    { icon:'💡', title:`${kpis.ownPsCount} Students Brought Own Ideas`, dark:true,
+      text:`${pct(kpis.ownPsCount, kpis.total)}% of students came with their own problem statement — strong signal of genuine product thinking. Position these students as team leads.` },
+    { icon:'🎓', title:`${kpis.seniorCt} Senior Students Available`, dark:false,
+      text:`${kpis.seniorCt} third-year+ students across branches. Each should lead one team — pairing them with 1st and 2nd year members creates the strongest learning dynamic.` },
+    { icon:'🚀', title:`${soloIdeas} Solo Ideas Need Homes`, dark:false,
+      text:`${soloIdeas} products have only 1 interested student. Match them to existing teams as 4th members, or pair similar-domain solos together before sprint 1.` }
+  ];
+
+  document.getElementById('insightsGrid').innerHTML = insights.map(ins =>
+    `<div class="insight-card ${ins.dark ? 'dark' : ''}">
+      <div class="insight-icon">${ins.icon}</div>
+      <div class="insight-title">${ins.title}</div>
+      <div class="insight-text">${ins.text}</div>
+    </div>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════════════
+//  ANIMATION — bars & reveal
+// ══════════════════════════════════════════════════════
+function animateBars(){
+  document.querySelectorAll('.bar-fill[data-w], .funnel-bar[data-w]').forEach(el => {
+    el.style.width = el.getAttribute('data-w') + '%';
+  });
+}
+
+function setupReveal(){
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('vis'); });
+  }, { threshold:0.1 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  // animate bars when in view
+  const barObs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) animateBars(); });
+  }, { threshold:0.2 });
+  document.querySelectorAll('.funnel-wrap,.charts-grid').forEach(el => barObs.observe(el));
+}
+
+// ══════════════════════════════════════════════════════
+//  SEARCH
+// ══════════════════════════════════════════════════════
+function filterTable(){
+  const q    = document.getElementById('searchInput').value.toLowerCase();
+  const rows = document.querySelectorAll('#rosterBody tr');
+  let vis    = 0;
+  rows.forEach(tr => {
+    const show = tr.textContent.toLowerCase().includes(q);
+    tr.style.display = show ? '' : 'none';
+    if(show) vis++;
+  });
+  document.getElementById('tableCount').textContent = `${vis} of ${rows.length} students`;
+}
+
+// ══════════════════════════════════════════════════════
+//  MAIN — FETCH & RENDER
+// ══════════════════════════════════════════════════════
+async function loadReport(){
+  const loadMsg = document.getElementById('loadingMsg');
+
+  try {
+    // validate URL configured
+    if (!GAS_URL || GAS_URL.includes('PASTE_YOUR')) {
+      throw new Error('GAS_URL not configured. Open this HTML file and set the GAS_URL constant at the top.');
+    }
+
+    loadMsg.textContent = 'Fetching live data from Google Sheet...';
+    const res  = await fetch(GAS_URL);
+    loadMsg.textContent = 'Processing responses...';
+    const data = await res.json();
+
+    if (!data.ok) throw new Error(data.error || 'GAS returned an error');
+
+    loadMsg.textContent = 'Rendering report...';
+
+    // update header
+    document.getElementById('headerSub').textContent =
+      `Student Registration & Interest Analysis · Cohort ${data.config.cohort} · ${data.kpis.total} Responses`;
+    document.getElementById('lastUpdated').textContent = data.timestamp;
+
+    // render all sections
+    renderKPIs(data.kpis, data.config);
+    renderFunnel(data.funnel);
+    renderCharts(data.kpis);
+    renderProducts(data.kpis.products, data.kpis.total);
+    renderTeams(data.teams);
+    renderRoster(data.students);
+    renderInsights(data.kpis, data.teams);
+
+    // show report
+    document.getElementById('reportRoot').style.display = 'block';
+    document.getElementById('loadingScreen').classList.add('hidden');
+    setTimeout(() => {
+      document.getElementById('loadingScreen').style.display = 'none';
+      setupReveal();
+      setTimeout(animateBars, 600);
+    }, 500);
+
+  } catch(err) {
+    document.getElementById('loadingScreen').classList.add('hidden');
+    const errScreen = document.getElementById('errorScreen');
+    errScreen.classList.add('show');
+    document.getElementById('errorDetail').textContent = err.message;
+  }
+}
+
+window.addEventListener('DOMContentLoaded', loadReport);
+</script>
+
+<!--
+════════════════════════════════════════════════════
+  DEPLOYMENT INSTRUCTIONS
+════════════════════════════════════════════════════
+  STEP 1 — GAS Setup
+  · Paste TPT_Report_Engine.gs into Apps Script
+  · Run testEngine() to verify Sheet connection
+  · Deploy → New deployment → Web App
+    · Execute as: Me
+    · Who has access: Anyone
+  · Copy the Web App URL
+
+  STEP 2 — HTML Setup
+  · Open this file
+  · Replace "PASTE_YOUR_GAS_WEB_APP_URL_HERE"
+    with your actual Web App URL
+
+  STEP 3 — Host on GitHub Pages
+  · Push this file to your repo
+  · Enable GitHub Pages
+  · Share the GitHub Pages URL
+
+  Every page load = fresh data from Google Sheet
+════════════════════════════════════════════════════
+-->
+</body>
+</html>

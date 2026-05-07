@@ -739,7 +739,7 @@ async function loadReport(){
       throw new Error('GAS_URL not configured. Open this HTML file and set the GAS_URL constant at the top.');
     }
 
-    loadMsg.textContent = 'Fetching live data from Google Sheet...';
+    loadMsg.textContent = 'Fetching live data from TPT_Response_Sheet...';
     const res  = await fetch(GAS_URL);
     loadMsg.textContent = 'Processing responses...';
     const data = await res.json();
